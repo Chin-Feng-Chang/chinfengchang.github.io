@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Bread Stack VR - Gameplay</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Material Symbols -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Theme Configuration -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#eebd2b",
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#221d10",
+                    },
+                    fontFamily: {
+                        "display": ["Be Vietnam Pro", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <!-- Three.js Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/fflate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;900&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <style>
+        .glass-panel {
+            background-color: rgba(34, 29, 16, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .text-shadow {
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display antialiased overflow-hidden select-none">
+    <!-- Main Game Container -->
+    <div class="relative w-full h-screen flex flex-col">
+        <!-- 3D Scene Viewport (Simulated) -->
+        <!-- 3D Scene Viewport (Three.js Container) -->
+        <div id="three-container" class="absolute inset-0 z-0 bg-background-dark"></div>
+        <!-- Vignette & Overlay -->
+        <div
+            class="absolute inset-0 z-0 bg-gradient-to-b from-black/70 via-transparent to-black/80 pointer-events-none">
+        </div>
+        <!-- Game HUD Layer -->
+        <div class="relative z-10 flex flex-col h-full justify-between p-6 md:p-10 pointer-events-none">
+            <!-- Top HUD Area -->
+            <header class="flex items-start justify-between pointer-events-auto">
+                <!-- Left: Stats Panel -->
+                <div class="flex flex-col gap-3 animate-fade-in-down">
+                    <!-- Current Height -->
+                    <div
+                        class="glass-panel rounded-2xl p-4 min-w-[160px] shadow-lg transform transition hover:scale-105">
+                        <div class="flex items-center gap-2 mb-1 opacity-70">
+                            <span class="material-symbols-outlined text-[#b9b29d]"
+                                style="font-size: 18px;">height</span>
+                            <p class="text-[#b9b29d] text-xs font-bold uppercase tracking-widest">Height</p>
+                        </div>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-white text-4xl font-black tracking-tight">1.2</span>
+                            <span class="text-primary text-lg font-bold">m</span>
+                        </div>
+                    </div>
+                    <!-- Record -->
+                    <div class="glass-panel rounded-2xl p-3 min-w-[160px] flex items-center justify-between shadow-lg">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary"
+                                style="font-size: 16px;">emoji_events</span>
+                            <p class="text-white/80 text-sm font-medium">Record</p>
+                        </div>
+                        <p class="text-white font-bold text-sm tracking-wide">14.5m</p>
+                    </div>
+                </div>
+                <!-- Right: Controls & Meters -->
+                <div class="flex flex-col items-end gap-4 animate-fade-in-down">
+                    <!-- System Controls -->
+                    <div class="flex gap-2">
+                        <button onclick="window.location.href='settings_screen.html'"
+                            class="glass-panel size-12 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-all active:scale-95 shadow-lg group">
+                            <span
+                                class="material-symbols-outlined group-hover:rotate-90 transition-transform duration-500">settings</span>
+                        </button>
+                        <button
+                            class="glass-panel size-12 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-all active:scale-95 shadow-lg">
+                            <span class="material-symbols-outlined">pause</span>
+                        </button>
+                    </div>
+                    <!-- Stability Meter -->
+                    <div class="glass-panel rounded-2xl p-4 w-[220px] shadow-lg">
+                        <div class="flex justify-between items-end mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-white"
+                                    style="font-size: 18px;">balance</span>
+                                <span class="text-white text-sm font-bold">Stability</span>
+                            </div>
+                            <span class="text-primary text-xs font-bold bg-primary/10 px-2 py-0.5 rounded-md">0%</span>
+                        </div>
+                        <div class="w-full bg-white/10 rounded-full h-3 overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-primary/60 to-primary rounded-full relative"
+                                style="width: 0%;">
+                                <div class="absolute inset-0 bg-white/20 w-full h-full animate-pulse"></div>
+                            </div>
+                        </div>
+                        <p class="text-[#b9b29d] text-[10px] mt-2 text-right font-medium">Structure is holding...</p>
+                    </div>
+                </div>
+            </header>
+            <!-- Center Gameplay Visuals (Feedback) -->
+            <div class="flex-1 flex flex-col items-center justify-center pointer-events-none">
+                <!-- Stack Pointer / Target (Simulated) -->
+                <div
+                    class="absolute opacity-30 border-2 border-dashed border-white rounded-full w-64 h-64 flex items-center justify-center transform scale-y-50">
+                    <div class="size-2 bg-white rounded-full"></div>
+                </div>
+                <!-- Dynamic Combo Text -->
+                <div class="transform -translate-y-20 animate-bounce hidden">
+                    <h2
+                        class="text-6xl md:text-8xl font-black text-white italic tracking-tighter text-shadow transform -rotate-3">
+                        PERFECT!
+                    </h2>
+                    <div class="flex justify-center mt-2">
+                        <span
+                            class="bg-primary text-background-dark font-bold text-lg px-3 py-1 rounded-lg transform rotate-2 shadow-lg">+500
+                            PTS</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Bottom Action Area -->
+            <div class="flex justify-center pb-6 md:pb-12 pointer-events-auto w-full">
+                <!-- Drop Button (FAB) -->
+                <button id="drop-btn" onclick="handleDrop()"
+                    class="group relative flex items-center justify-center overflow-hidden rounded-full h-20 md:h-24 px-8 md:px-12 bg-primary hover:bg-[#ffcd38] text-background-dark shadow-[0_0_50px_rgba(238,189,43,0.3)] hover:shadow-[0_0_80px_rgba(238,189,43,0.5)] transition-all duration-300 transform hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer">
+                    <!-- Inner Glow/Ring -->
+                    <div
+                        class="absolute inset-0 rounded-full border-[3px] border-white/20 group-hover:border-white/40 transition-colors">
+                    </div>
+                    <div class="flex flex-col items-center relative z-10">
+                        <span
+                            class="material-symbols-outlined text-4xl md:text-5xl mb-[-4px] group-hover:translate-y-1 transition-transform duration-300">arrow_downward</span>
+                    </div>
+                    <div class="flex flex-col items-start ml-4 md:ml-6">
+                        <span id="drop-btn-label"
+                            class="text-xs md:text-sm font-bold opacity-60 uppercase tracking-widest">Ready to</span>
+                        <span id="drop-btn-text"
+                            class="text-xl md:text-3xl font-black uppercase tracking-wide leading-none">DROP
+                            BREAD</span>
+                    </div>
+                    <!-- Button Shine Effect -->
+                    <div
+                        class="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent z-20">
+                    </div>
+                </button>
+            </div>
+
+        </div>
+    </div>
+    <!-- Tailwind Config for Animation -->
+    <style>
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+    </style>
+    <!-- Three.js & Cannon.js Script -->
+    <script>
+        // Gameplay Variables
+        const breads = []; // Visual Meshes
+        const bodies = []; // Physics Bodies
+        let gameActive = false;
+        let breadModelTemplate = null; // Store loaded model to clone
+        let breadRadius = 1; // Approx radius, will calculate from bounding box
+        let stabilityScore = 0;
+
+        // --- 1. Physics Setup (Cannon.js) ---
+        const world = new CANNON.World();
+        world.gravity.set(0, -9.82, 0);
+        world.broadphase = new CANNON.NaiveBroadphase();
+        world.solver.iterations = 10;
+
+        // Materials
+        const groundPhysMat = new CANNON.Material();
+        const breadPhysMat = new CANNON.Material();
+        const contactMat = new CANNON.ContactMaterial(groundPhysMat, breadPhysMat, {
+            friction: 0.4,
+            restitution: 0.3 // Bounciness
+        });
+        const breadContactMat = new CANNON.ContactMaterial(breadPhysMat, breadPhysMat, {
+            friction: 0.4,
+            restitution: 0.5
+        });
+        world.addContactMaterial(contactMat);
+        world.addContactMaterial(breadContactMat);
+
+        // Ground Body
+        const groundShape = new CANNON.Plane();
+        const groundBody = new CANNON.Body({ mass: 0, material: groundPhysMat });
+        groundBody.addShape(groundShape);
+        groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+        world.addBody(groundBody);
+
+        // --- 2. Scene Setup (Three.js) ---
+        const scene = new THREE.Scene();
+        // scene.background = new THREE.Color(0x221d10); // Matches background-dark
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        // Camera setup: Look at center from an angle
+        camera.position.set(0, 15, 20); // Higher up to see dropping
+        camera.lookAt(0, 5, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true; // Enable Shadows
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.getElementById('three-container').appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); // Reduce ambient to make shadows visible
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 20, 7.5); // Higher light source
+        directionalLight.castShadow = true; // Enable Light Shadow
+        // Configure shadow properties
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        directionalLight.shadow.camera.near = 0.5;
+        directionalLight.shadow.camera.far = 100;
+        directionalLight.shadow.camera.left = -30;
+        directionalLight.shadow.camera.right = 30;
+        directionalLight.shadow.camera.top = 30;
+        directionalLight.shadow.camera.bottom = -30;
+        scene.add(directionalLight);
+
+        // Transparent Plane Floor at (0,0,0) - Visual
+        const planeGeometry = new THREE.PlaneGeometry(100, 100);
+        const planeMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+        const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.rotation.x = -Math.PI / 2; // Flat on ground (XZ plane)
+        plane.position.set(0, 0, 0);
+        plane.receiveShadow = true; // Enable Floor Shadow
+        scene.add(plane);
+
+        // --- 3. Assets Loading ---
+        let mixer;
+        const loader = new THREE.FBXLoader();
+        const textureLoader = new THREE.TextureLoader();
+
+        // Textures for Bread
+        const diffMap = textureLoader.load('assets/model/bread/Kaiser_Bread_Roll_Diffuse.jpg');
+        const normMap = textureLoader.load('assets/model/bread/Kaiser_Bread_Roll_Normal.jpg');
+        const roughMap = textureLoader.load('assets/model/bread/Kaiser_Bread_Roll_Reflection.jpg');
+
+        // Load FBX Model (Bread Template)
+        loader.load('assets/model/bread/uploads_files_1027369_Kaiser+Bread+Roll.FBX', function (object) {
+
+            // Apply Textures to template
+            object.traverse(function (child) {
+                if (child.isMesh) {
+                    child.material.map = diffMap;
+                    child.material.normalMap = normMap;
+                    child.material.roughnessMap = roughMap;
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+
+            // Auto-scale logic
+            const box = new THREE.Box3().setFromObject(object);
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scale = 5 / maxDim; // Scale to decent size
+            object.scale.set(scale, scale, scale);
+
+            // Re-calculate box after scaling to find center offset
+            box.setFromObject(object);
+            const center = box.getCenter(new THREE.Vector3());
+
+            // Adjust child positions to center the model at (0,0,0) world-space-wise relative to parent
+            // Since we can't easily move the loaded root 'object' origin without a wrapper, 
+            // we will translate all children.
+            object.traverse(function (child) {
+                if (child.isMesh) {
+                    child.position.x -= center.x / scale; // Divide by scale because we are inside the scaled object space? 
+                    // Wait, object.scale is applied to the object. Child positions are local.
+                    // If we move children, we move them in local space.
+                    // center is in world space (due to box.setFromObject).
+                    // Let's do a different approach: Wrapper.
+                }
+            });
+
+            // BETTER APPROACH: Wrap in a group that handles the offset
+            // But we are cloning 'object'. 
+            // Let's just create a wrapper here for the template.
+            const wrapper = new THREE.Group();
+            wrapper.add(object);
+
+            // Convert center to local space offset? 
+            // Actually, simply:
+            // The box center is where the "visual center" is.
+            // We want that point to be at (0,0,0) of the wrapper.
+            // So we move the object by -center.
+
+            // Note: box.getCenter returns World Coordinates.
+            // Since object is at (0,0,0) currently (default load), center is the offset.
+            object.position.sub(center);
+
+            // Now 'wrapper' is the centered entity.
+
+            // Calculate approx radius for physics (use Y dimension / 2 for height-based radius, or X for width)
+            // Kaiser roll is flat. Cylinder might be better, but Sphere is requested/simpler.
+            // Use half-height for vertical radius to ensure it touches floor?
+            // User complained about "too high".
+            // If sphere radius is determined by Width (big) but Height is small (flat bread),
+            // The physics sphere will be huge, and the flat bread will float inside it.
+            // Kaiser Bread is ~flat. 
+            // x/z are width/depth. y is height.
+            breadRadius = size.y / 2; // Use height-based radius for floor contact accuracy? 
+            // If we use height radius, it might clip into other breads sideways.
+            // Let's compromise: Use Cylinder!
+            // Or stick to sphere but use the vertical extent radius?
+            // If we use a sphere of radius = height/2, it will touch floor correctly, but side collisions will arguably overlap visual mesh.
+            // If we use radius = width/2, it sits high.
+            // Let's try Physics Shape = Cylinder? Or just reduce radius to height/2 and accept side overlap?
+            // The user specifically said "too high off floor".
+            breadRadius = size.y / 2;
+
+            breadModelTemplate = wrapper; // Save the wrapper as template
+
+        }, undefined, function (error) {
+            console.error(error);
+        });
+
+        // Load FBX Model (Penguin - Spectator)
+        loader.load('assets/model/penguin/penguin.fbx', function (object) {
+
+            // Load Textures
+            const p_rgb = textureLoader.load('assets/model/penguin/10bb288ced5a_A_penguin_wearing_a_rgb.jpg');
+            const p_normal = textureLoader.load('assets/model/penguin/10bb288ced5a_A_penguin_wearing_a_normals.jpg');
+            const p_metallic = textureLoader.load('assets/model/penguin/10bb288ced5a_A_penguin_wearing_a_metallic.jpg');
+            const p_roughness = textureLoader.load('assets/model/penguin/10bb288ced5a_A_penguin_wearing_a_roughness.jpg');
+
+            object.traverse(function (child) {
+                if (child.isMesh) {
+                    child.material.map = p_rgb;
+                    child.material.normalMap = p_normal;
+                    child.material.metalnessMap = p_metallic;
+                    child.material.roughnessMap = p_roughness;
+                    child.material.needsUpdate = true;
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+
+            // Auto-scale
+            const box = new THREE.Box3().setFromObject(object);
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scale = 5 / maxDim;
+            object.scale.set(scale, scale, scale);
+
+            // Set Position (Spectator)
+            object.position.set(10, 0.1, 0);
+            object.rotation.x = Math.PI * 1.5;
+            scene.add(object);
+
+        }, undefined, function (error) {
+            console.error(error);
+        });
+
+        // --- 4. Controls & Input ---
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.25;
+        controls.enableZoom = true;
+        // Limit controls to look at center
+        controls.target.set(0, 5, 0);
+
+        // Raycaster for aiming
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2(); // Center is (0,0) for camera looking direction
+
+        // Plane for raycasting (XZ plane at y=0)
+        const hitPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+
+        // Button Handler
+        window.handleDrop = function () {
+            const btnLabel = document.getElementById('drop-btn-label');
+            const btnText = document.getElementById('drop-btn-text');
+
+            if (!gameActive) {
+                // State 1: Activate Game
+                gameActive = true;
+                btnLabel.innerHTML = "";
+                btnText.innerHTML = "放下麵包";
+                // Perhaps reset score?
+                stabilityScore = 0;
+                updateStabilityUI(0);
+            } else {
+                // State 2: Drop Bread
+                dropBread();
+            }
+        };
+
+        function dropBread() {
+            if (!breadModelTemplate) return;
+
+            // 1. Calculate Drop Position
+            // Raycast from camera center to find X,Z on ground
+            raycaster.setFromCamera({ x: 0, y: 0 }, camera);
+            const target = new THREE.Vector3();
+            raycaster.ray.intersectPlane(hitPlane, target);
+
+            if (target) {
+                const spawnPos = new THREE.Vector3(target.x, 50, target.z);
+
+                // 2. Spawn Physics Body
+                // Using a Cylinder for somewhat realistic roll behavior (flat bottom/top, round sides)
+                // Kaiser roll is flattish sphere. 
+                // Fix for "floating": Use radius derived from height/2 so it touches ground.
+                const shape = new CANNON.Sphere(breadRadius);
+                const body = new CANNON.Body({
+                    mass: 5, // Kg
+                    material: breadPhysMat,
+                    position: new CANNON.Vec3(spawnPos.x, spawnPos.y, spawnPos.z)
+                });
+                body.addShape(shape);
+
+                // Damping to stop it rolling forever
+                body.linearDamping = 0.1;
+                body.angularDamping = 0.5;
+
+                world.addBody(body);
+                bodies.push(body);
+
+                // 3. Spawn Visual Mesh
+                const mesh = breadModelTemplate.clone();
+                mesh.position.copy(spawnPos);
+                scene.add(mesh);
+                breads.push(mesh);
+
+                // 4. Scoring Logic (Collision Event)
+                // Add listener to body
+                let hasLanded = false;
+                body.addEventListener("collide", function (e) {
+                    if (hasLanded) return;
+
+                    // Check what we hit
+                    // If we hit ground (mass 0) -> No points? Or small points?
+                    // User said: "Success landing... NOT on floor... -> stability increase"
+                    // If we hit another bread (mass > 0) -> Increase score
+
+                    const contactNormal = new CANNON.Vec3();
+                    e.contact.ni.negate(contactNormal); // Direction from body to other
+
+                    // Simple logic: if relative velocity is low enough, consider "landed"
+                    if (Math.abs(e.contact.getImpactVelocityAlongNormal()) < 2) {
+                        if (e.body.mass > 0) { // Hit another dynamic body (bread)
+                            // It's a stack!
+                            stabilityScore += 10;
+                            hasLanded = true;
+                            updateStabilityUI(Math.min(100, stabilityScore));
+                            showFloatingText("STACKED!", 100);
+                        } else {
+                            // Hit ground
+                            // No score increase
+                            hasLanded = true; // Landed on ground
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateStabilityUI(percent) {
+            const meter = document.querySelector('.bg-gradient-to-r.from-primary\\/60');
+            const text = document.querySelector('.text-primary.bg-primary\\/10');
+            if (meter) meter.style.width = percent + '%';
+            if (text) text.innerText = percent + '%';
+        }
+
+        function showFloatingText(text, pts) {
+            // Re-use the "PERFECT" container or create new?
+            // For now, toggle the hidden PERFECT container
+            const container = document.querySelector('.animate-bounce');
+            const h2 = container.querySelector('h2');
+            const span = container.querySelector('span');
+
+            if (container && h2 && span) {
+                h2.innerText = text;
+                span.innerText = "+" + pts + " PTS";
+                container.classList.remove('hidden');
+
+                // Hide after 2s
+                setTimeout(() => {
+                    container.classList.add('hidden');
+                }, 2000);
+            }
+        }
+
+        // --- 5. Animation Loop ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const dt = clock.getDelta();
+
+            // Step Physics
+            world.step(1 / 60, dt, 3);
+
+            // Sync Visuals
+            for (let i = 0; i < breads.length; i++) {
+                breads[i].position.copy(bodies[i].position);
+                breads[i].quaternion.copy(bodies[i].quaternion);
+
+                // Cleanup fallen bread
+                if (breads[i].position.y < -20) {
+                    // Remove from world (TODO: Logic for game over?)
+                }
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+    </script>
+</body>
+
+</html>

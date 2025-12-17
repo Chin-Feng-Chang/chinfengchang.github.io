@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Game Over - Bread Stacker</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;900&amp;family=Noto+Sans:wght@400;500;700;900&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#eebd2b",
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#221d10",
+                    },
+                    fontFamily: {
+                        "display": ["Be Vietnam Pro", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for webkit browsers */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #221d10;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #393528;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #544d3b;
+        }
+
+        /* Glassmorphism utility for overlay feel */
+        .glass-panel {
+            background: rgba(34, 29, 16, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(238, 189, 43, 0.1);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark font-display text-white overflow-hidden selection:bg-primary selection:text-background-dark">
+    <!-- Main Container: Centers content for VR/Desktop focus -->
+    <div class="relative min-h-screen w-full flex items-center justify-center p-4">
+        <!-- Abstract Background Visuals (Simulating 3D context) -->
+        <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            <!-- Gradient Overlay -->
+            <div
+                class="absolute inset-0 bg-gradient-to-b from-background-dark/80 via-background-dark/95 to-background-dark z-10">
+            </div>
+            <!-- Background Image -->
+            <div class="absolute inset-0 z-0 opacity-40 bg-cover bg-center"
+                data-alt="Abstract golden bread crumbs and flour particles floating in dark space"
+                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDUKoc7idac5S-MiuXihE-69v-REu7WR5fHTkEG7vVI1iO0s7qbZEbGsumIlb9mYdLPZKGlDvVe1aVb2Y98tPw5hs7YVajmLaOGL7U8QCgKa_E7vdcaLxcuLFKwF8IQSPLpmEQgzg96luyDoCAJ6_4-TDLHxy7HkdAtUO__7f_vPvID8_Hzkl5isS37JGgXltu5dJQcAGMmXbSQWDxgKoHWtfBtypnLlyOPcbc4sOwbBe7d8tssc0xST6h0krBwQ99s5CqqVM2-ZQ');">
+            </div>
+        </div>
+        <!-- Content Card: Floating Glass Panel -->
+        <div
+            class="glass-panel relative z-20 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col items-center animate-fade-in p-8 gap-8">
+            <!-- Header Section -->
+            <div class="flex flex-col items-center gap-2 text-center w-full">
+                <h1 class="text-white text-5xl md:text-6xl font-black leading-tight tracking-[-0.033em] drop-shadow-lg">
+                    Out of Bread!
+                </h1>
+                <p class="text-[#b9b29d] text-lg font-medium leading-normal">
+                    The tower has crumbled.
+                </p>
+            </div>
+            <!-- Score Hero Section -->
+            <div class="flex flex-col items-center justify-center w-full py-6 relative">
+                <!-- Decorative Glow -->
+                <div class="absolute w-32 h-32 bg-primary/20 blur-[60px] rounded-full pointer-events-none"></div>
+                <span class="text-primary/80 uppercase text-xs font-bold tracking-widest mb-1">Final Score</span>
+                <div class="text-white text-7xl md:text-8xl font-black tracking-tighter leading-none"
+                    id="score-display">
+                    1,240
+                </div>
+                <!-- High Score Badge -->
+                <div
+                    class="mt-4 inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 shadow-[0_0_15px_rgba(238,189,43,0.15)]">
+                    <span class="material-symbols-outlined text-primary text-[20px]">trophy</span>
+                    <span class="text-primary text-sm font-bold tracking-wide">New High Score!</span>
+                </div>
+            </div>
+            <!-- Stats Grid -->
+            <div class="w-full grid grid-cols-2 gap-4">
+                <div
+                    class="flex flex-col items-center justify-center gap-1 rounded-lg bg-[#393528]/50 p-4 border border-[#544d3b]/50">
+                    <div class="p-2 rounded-full bg-[#544d3b]/30 mb-1">
+                        <span class="material-symbols-outlined text-[#b9b29d] text-[24px]">align_vertical_bottom</span>
+                    </div>
+                    <p class="text-[#b9b29d] text-xs font-bold uppercase tracking-wider">Tallest Tower</p>
+                    <p class="text-white text-xl font-bold">45m</p>
+                </div>
+                <div
+                    class="flex flex-col items-center justify-center gap-1 rounded-lg bg-[#393528]/50 p-4 border border-[#544d3b]/50">
+                    <div class="p-2 rounded-full bg-[#544d3b]/30 mb-1">
+                        <span class="material-symbols-outlined text-[#b9b29d] text-[24px]">timer</span>
+                    </div>
+                    <p class="text-[#b9b29d] text-xs font-bold uppercase tracking-wider">Time Played</p>
+                    <p class="text-white text-xl font-bold">3m 20s</p>
+                </div>
+            </div>
+            <!-- Action Buttons -->
+            <div class="flex flex-col w-full gap-3 mt-2">
+                <!-- Primary Action -->
+                <button onclick="window.location.href='game_play_screen.html'"
+                    class="group w-full cursor-pointer flex items-center justify-center rounded-full h-14 px-6 bg-primary hover:bg-[#ffcf40] hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(238,189,43,0.4)] transition-all duration-200 text-background-dark gap-3 text-lg font-extrabold tracking-wide">
+                    <span
+                        class="material-symbols-outlined text-background-dark text-[28px] group-hover:rotate-180 transition-transform duration-500">replay</span>
+                    <span>Stack Again</span>
+                </button>
+                <!-- Secondary Action -->
+                <button onclick="window.location.href='index.html'"
+                    class="group w-full cursor-pointer flex items-center justify-center rounded-full h-12 px-6 bg-transparent border-2 border-[#544d3b] hover:border-[#b9b29d] hover:bg-[#393528]/30 transition-colors duration-200 text-white gap-3 text-base font-bold tracking-wide mt-1">
+                    <span class="material-symbols-outlined text-white text-[24px]">home</span>
+                    <span>Main Menu</span>
+                </button>
+            </div>
+            <!-- Footer -->
+            <div class="pt-2 text-center">
+                <p class="text-[#544d3b] text-xs font-medium">v1.2.4 • Bread Stacker VR</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
